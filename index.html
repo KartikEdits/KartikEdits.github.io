@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartik Sharma | Video Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global Styles & Variables */
+        :root {
+            --bg-color: #050505;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #ffcc00; 
+            --card-bg: #111111;
+            --font-head: 'Oswald', sans-serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: var(--font-body); 
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* --- Navigation Sidebar (Desktop) --- */
+        nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 250px;
+            height: 100vh;
+            background: rgba(5, 5, 5, 0.95);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 50px 30px;
+            z-index: 1000;
+        }
+
+        .nav-header {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-toggle {
+            display: none; 
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 2000;
+        }
+
+        .menu-toggle .bar {
+            width: 30px;
+            height: 3px;
+            background-color: var(--text-main);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .logo {
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 60px;
+            color: var(--text-main);
+        }
+
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 25px; }
+        .nav-links li a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav-links li a:hover, .nav-links li a.active { color: var(--accent); }
+
+        /* --- Main Content Area --- */
+        main {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+
+        section {
+            min-height: 100vh;
+            padding: 80px 10%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden; 
+        }
+
+        /* --- ASSEMBLING ANIMATION CLASSES --- */
+        .reveal {
+            opacity: 0;
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        
+        .reveal.fade-up { transform: translateY(60px); }
+        .reveal.fade-left { transform: translateX(-80px); }
+        .reveal.fade-right { transform: translateX(80px); }
+        
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        .reveal.active { opacity: 1; transform: translate(0); }
+
+        /* Typography */
+        h1, h2, h3 { font-family: var(--font-head); text-transform: uppercase; }
+        h1 { font-size: 5rem; line-height: 1.1; margin-bottom: 20px; }
+        h2 { font-size: 3.5rem; margin-bottom: 30px; letter-spacing: 2px; }
+        p { color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; font-size: 1.1rem; max-width: 600px; }
+        .accent-text { color: var(--accent); }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--text-main);
+            text-decoration: none;
+            font-family: var(--font-head);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover { background: var(--text-main); color: var(--bg-color); }
+
+        /* Shared Layouts */
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Image Styling */
+        .rounded-img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 40px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Video Preview Wrapper */
+        .video-wrapper {
+            position: relative;
+            display: block;
+            cursor: pointer;
+            border-radius: 40px;
+            overflow: hidden; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: transform 0.3s;
+        }
+        .video-wrapper:hover { transform: translateY(-10px); }
+        .video-wrapper video { 
+            width: 100%; height: 400px; object-fit: cover; display: block; 
+            background-color: var(--card-bg); 
+        }
+
+        /* Custom Play Button Overlay */
+        .play-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--text-main); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s; z-index: 2;
+        }
+        .video-wrapper:hover .play-icon {
+            background: var(--accent); border-color: var(--accent); transform: translate(-50%, -50%) scale(1.1);
+        }
+        .play-icon::after {
+            content: ''; border-style: solid; border-width: 12px 0 12px 20px;
+            border-color: transparent transparent transparent var(--text-main);
+            margin-left: 5px; transition: border-color 0.3s;
+        }
+        .video-wrapper:hover .play-icon::after { border-color: transparent transparent transparent var(--bg-color); }
+
+        /* Timeline for Education */
+        .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 40px; }
+        .timeline-item {
+            background: var(--card-bg); padding: 30px; border-radius: 20px;
+            border-top: 4px solid var(--accent);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .timeline-item:hover {
+            transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            border-top-color: var(--text-main);
+        }
+        .timeline-item h3 { font-size: 1.8rem; margin-bottom: 5px; }
+        .timeline-item span { color: var(--accent); font-weight: 600; display: block; margin-bottom: 15px; }
+        .timeline-item .school-name { color: var(--text-main); font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 10px; }
+
+        /* Mobile & Tablet Responsiveness */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; }
+            
+            /* Top Navigation Bar */
+            nav { 
+                width: 100%; height: auto; position: fixed; 
+                padding: 20px 5%; flex-direction: row; align-items: center; 
+                background: rgba(5, 5, 5, 0.98); border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+            
+            .nav-header { flex-direction: row; align-items: center; gap: 20px; width: 100%; }
+            .logo { margin-bottom: 0; font-size: 1.5rem; line-height: 1.2; }
+            .logo br { display: none; } 
+            
+            .menu-toggle { display: flex; } 
+            
+            /* Slide-in Mobile Menu */
+            .nav-links { 
+                position: fixed; top: 0; left: -100%; width: 280px; height: 100vh; 
+                background: rgba(5, 5, 5, 0.98); border-right: 1px solid rgba(255,255,255,0.05);
+                flex-direction: column; justify-content: center; align-items: center; 
+                transition: left 0.4s ease-in-out; z-index: 1000; padding: 0;
+            }
+            
+            .nav-links.is-active { left: 0; }
+            .nav-links li { margin: 15px 0; }
+            .nav-links li a { font-size: 1.4rem; }
+
+            /* Hamburger to X Animation */
+            .menu-toggle.is-active .bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+            .menu-toggle.is-active .bar:nth-child(2) { opacity: 0; }
+            .menu-toggle.is-active .bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+            /* Force perfect centering for all content */
+            main { margin-left: 0; width: 100%; }
+            section { padding: 120px 5% 60px 5%; } 
+            
+            .split-layout { grid-template-columns: 1fr; gap: 40px; }
+            
+            /* Centers the flex items inside the grid */
+            .split-layout > div {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+            }
+            
+            .split-layout p { text-align: center; margin: 0 auto 20px auto; }
+            .btn { margin: 20px auto 0 auto; }
+            
+            /* Scaling down typography and images */
+            h1 { font-size: 3rem; text-align: center; }
+            h2 { font-size: 2.2rem; text-align: center; }
+            .rounded-img { height: 300px; }
+            .video-wrapper video { height: 300px; }
+            
+            .timeline { grid-template-columns: 1fr; gap: 20px; text-align: center; }
+            .timeline-item { text-align: center; }
+            
+            .contact-info { text-align: center; width: 100%; }
+
+            /* Override horizontal animations to vertical fade-ups on mobile to prevent off-center shifting */
+            .reveal.fade-left, .reveal.fade-right { transform: translateY(40px); }
+            .reveal.active { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-header">
+            <div class="menu-toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+            <div class="logo">KARTIK<br>SHARMA</div>
+        </div>
+        
+        <ul class="nav-links" id="nav-links">
+            <li><a href="#home" class="nav-btn active">Home</a></li>
+            <li><a href="#about" class="nav-btn">About</a></li>
+            <li><a href="#education" class="nav-btn">Education</a></li>
+            <li><a href="#projects" class="nav-btn">Projects</a></li>
+            <li><a href="#contact" class="nav-btn">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        
+        <section id="home">
+            <div class="split-layout">
+                <div class="reveal fade-left">
+                    <p style="color: var(--accent); font-family: var(--font-head); letter-spacing: 2px;">WELCOME TO MY PORTFOLIO</p>
+                    <h1>Creative<br><span class="accent-text">Video Editor</span><br>Presentation</h1>
+                    <p>I transform raw footage into compelling narratives. Specializing in high-end post-production, color grading, and dynamic motion graphics.</p>
+                    <a href="#projects" class="btn">View My Reel</a>
+                </div>
+                <div class="reveal fade-right delay-200">
+                    <img src="image1.jpeg" class="rounded-img" alt="My image">
+                </div>
+            </div>
+        </section>
+
+        <section id="about">
+            <div class="split-layout">
+                <div class="reveal fade-left">
+                    <img src="https://images.unsplash.com/photo-1601506521937-0121a7fc2a6b?q=80&w=800&auto=format&fit=crop" class="rounded-img" style="height: 500px;" alt="Camera Setup">
+                </div>
+                <div class="reveal fade-right delay-200">
+                    <h2>About <span class="accent-text">Me</span></h2>
+                    
+                    <p>With a background in Information Technology, I bring a highly technical, problem-solving mindset to my true passion: visual storytelling. I am a self-taught Video Editor who believes a strong portfolio speaks louder than a traditional film degree.</p>
+                    
+                    <p>After gaining initial corporate experience, I am now fully dedicated to crafting engaging narratives full-time. My editing arsenal includes <strong>Premiere Pro, Photoshop, CapCut</strong>, and <strong>Alight Motion</strong>, along with growing skills in <strong>After Effects</strong>.</p>
+                    
+                    <a href="#contact" class="btn">Let's Connect</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="education">
+            <div class="reveal fade-up" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <h2>My <span class="accent-text">Education</span></h2>
+                <p>The academic foundation and training behind my technical and creative post-production workflows.</p>
+            </div>
+            
+            <div class="timeline">
+                <div class="timeline-item reveal fade-up delay-100">
+                    <span>2025</span>
+                    <span class="school-name">Lucknow Institue Of Technology</span>
+                    <h3>BTech in Information Technology<br>(Pursuing)</h3>
+                    <p>My ongoing BTech in Information Technology fuels my technical edge, allowing me to integrate optimized workflows and advanced tech into modern video editing.</p>
+                </div>
+                <div class="timeline-item reveal fade-up delay-200">
+                    <span>2021-2024</span>
+                    <span class="school-name">Hewett Polytechnic</span>
+                    <h3>Diploma in Information Technology</h3>
+                    <p>Fusing technical knowledge with digital art, my IT Diploma laid the groundwork for advanced software proficiency in video post-production.</p>
+                </div>
+                <div class="timeline-item reveal fade-up delay-300">
+                    <span>2019-2021</span>
+                    <span class="school-name">S. V. Inter College</span>
+                    <h3>Primary and Secondary Education</h3>
+                    <p>While building my academic foundation at S. V. Inter College, I discovered a passion for digital media that evolved into my career in video editing and design.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects">
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 50px;" class="reveal fade-up">
+                <h2>My Latest <span class="accent-text">Projects</span></h2>
+                <p style="margin: 0 auto;">A curated selection of my recent work.</p>
+            </div>
+
+            <div class="split-layout">
+                <div class="reveal fade-left delay-100">
+                    <a href="https://drive.google.com/file/d/1wDH5GddaISgmPwyG38agcYl6skWlXXK2/view?usp=sharing" target="_blank" class="video-wrapper">
+                        <video autoplay loop muted playsinline poster="long.png">
+                            <source src="https://drive.google.com/file/d/1wDH5GddaISgmPwyG38agcYl6skWlXXK2/view?usp=sharing" type="video/mp4">
+                        </video>
+                        <div class="play-icon"></div>
+                    </a>
+                    <h3 style="margin-top: 20px; font-size: 2rem;">Project 1: Long-Form Video</h3>
+                    <p>Transforming raw, extensive footage into polished, cinematic journeys. My long-form editing relies on structured narrative flow and high-quality visual sequencing to build compelling stories that hold attention.</p>
+                </div>
+                
+                <div class="reveal fade-right delay-200">
+                    <a href="https://drive.google.com/file/d/13RVUM7erhdEI_bj-nX92ub3IGALg5aXU/view?usp=sharing" target="_blank" class="video-wrapper">
+                        <video autoplay loop muted playsinline poster="reel.png">
+                            <source src="https://drive.google.com/file/d/13RVUM7erhdEI_bj-nX92ub3IGALg5aXU/view?usp=sharing" type="video/mp4">
+                        </video>
+                        <div class="play-icon"></div>
+                    </a>
+                    <h3 style="margin-top: 20px; font-size: 2rem;">Project 2: Reels</h3>
+                    <p>High-energy edits designed for maximum retention. I create scroll-stopping short-form content and Reels using snappy cuts, dynamic captions, and trend-driven pacing to capture attention instantly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact">
+            <div class="split-layout">
+                <div class="reveal fade-left">
+                    <h1 style="font-size: 4rem;">THANK <span class="accent-text">YOU</span></h1>
+                    <h2 style="font-family: var(--font-body); font-weight: 300; text-transform: none; font-size: 1.8rem; color: var(--accent);">For Your Attention</h2>
+                    <p style="margin-top: 30px;">I am currently open to freelance opportunities and full-time positions. If you have a project that needs a sharp eye, don't hesitate to reach out.</p>
+                </div>
+                
+                <div class="contact-info reveal fade-right delay-200" style="background: var(--card-bg); padding: 40px; border-radius: 20px;">
+                    <h2>Get In <span class="accent-text">Touch</span></h2>
+                    <p><strong>Email: </strong> kartikim890@gmail.com</p>
+                    <p><strong>Phone Number: </strong> +91 95554 99984</p>
+                    <button class="btn" style="width: 100%; margin-top: 30px;" onclick="window.open('https://wa.me/+919555499984?text=Hi%20Kartik,%20I%20saw%20your%20portfolio%20and%20would%20like%20to%20discuss%20a%20project!', 'i Kartik, I saw your portfolio and would like to discuss a project!')">SEND MESSAGE</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navMenu = document.getElementById('nav-links');
+        const navLinksList = document.querySelectorAll('.nav-btn');
+
+        mobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.toggle('is-active');
+            navMenu.classList.toggle('is-active');
+        });
+
+        navLinksList.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('is-active');
+                navMenu.classList.remove('is-active');
+            });
+        });
+
+        const sections = document.querySelectorAll('section');
+
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    let currentId = entry.target.getAttribute('id');
+                    navLinksList.forEach(link => {
+                        link.classList.remove('active');
+                        if(link.getAttribute('href') === `#${currentId}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.2 }); 
+
+        sections.forEach(section => sectionObserver.observe(section));
+
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, { 
+            threshold: 0.1, 
+            rootMargin: "0px 0px -50px 0px" 
+        });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+    </script>
+</body>
+</html>
